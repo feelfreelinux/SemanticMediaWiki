@@ -29,6 +29,7 @@ class ShowParserFunctionTest extends \PHPUnit_Framework_TestCase {
 		$this->semanticDataValidator = $this->testEnvironment->getUtilityFactory()->newValidatorFactory()->newSemanticDataValidator();
 
 		$this->testEnvironment->addConfiguration( 'smwgQueryDurationEnabled', false );
+		$this->testEnvironment->addConfiguration( 'smwgQueryResultCacheType', false );
 	}
 
 	protected function tearDown() {

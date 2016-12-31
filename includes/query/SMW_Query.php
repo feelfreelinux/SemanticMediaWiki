@@ -435,9 +435,7 @@ class SMWQuery implements QueryContext {
 
 		// FIXME 3.0 Leave the hash unchanged to avoid unnecessary BC issues in
 		// case the cache is not used.
-		if ( $GLOBALS['smwgQueryResultCacheType'] === false ||
-			$GLOBALS['smwgQueryResultCacheType'] === CACHE_NONE ||
-			$GLOBALS['smwgQueryResultCacheType'] === 'hash' ) {
+		if ( $GLOBALS['smwgQueryResultCacheType'] === false || $GLOBALS['smwgQueryResultCacheType'] === CACHE_NONE ) {
 			return HashBuilder::createFromArray( $this->toArray() );
 		}
 
@@ -446,6 +444,7 @@ class SMWQuery implements QueryContext {
 		if ( $this->description === null ) {
 			return '';
 		}
+
 		$serialized = array();
 
 		// Don't use the QueryString, use the canonized hash to ensure that
@@ -467,7 +466,6 @@ class SMWQuery implements QueryContext {
 		// Printouts are avoided as part of the hash as they not influence the
 		// result match process and are only resolved after the query result has
 		// been retrieved
-
 		return HashBuilder::createFromArray( $serialized );
 	}
 

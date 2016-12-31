@@ -18,7 +18,7 @@ class Disjunction extends Description {
 	/**
 	 * @var Description[]
 	 */
-	private $descriptions;
+	private $descriptions = array();
 
 	/**
 	 * @var string|null
@@ -76,6 +76,7 @@ class Disjunction extends Description {
 	public function addDescription( Description $description ) {
 
 		$this->hash = null;
+		$hash = $description->getHash();
 
 		if ( $description instanceof ThingDescription ) {
 			$this->isTrue = true;
@@ -87,18 +88,18 @@ class Disjunction extends Description {
 			if ( $description instanceof ClassDescription ) { // combine class descriptions
 				if ( is_null( $this->classDescription ) ) { // first class description
 					$this->classDescription = $description;
-					$this->descriptions[] = $description;
+					$this->descriptions[$description->getHash()] = $description;
 				} else {
 					$this->classDescription->addDescription( $description );
 				}
 			} elseif ( $description instanceof Disjunction ) { // absorb sub-disjunctions
 				foreach ( $description->getDescriptions() as $subdesc ) {
-					$this->descriptions[] = $subdesc;
+					$this->descriptions[$subdesc->getHash()] = $subdesc;
 				}
 			// } elseif ($description instanceof SMWSomeProperty) {
 			   ///TODO: use subdisjunct. for multiple SMWSomeProperty descs with same property
 			} else {
-				$this->descriptions[] = $description;
+				$this->descriptions[$hash] = $description;
 			}
 		}
 

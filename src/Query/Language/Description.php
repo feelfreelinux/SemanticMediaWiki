@@ -20,6 +20,11 @@ abstract class Description {
 	protected $m_printreqs = array();
 
 	/**
+	 * @var string
+	 */
+	private $membership = '';
+
+	/**
 	 * Get the (possibly empty) array of all print requests that
 	 * exist for the entities that fit this description.
 	 *
@@ -97,6 +102,27 @@ abstract class Description {
 	 * @return boolean
 	 */
 	abstract public function isSingleton();
+
+	/**
+	 * Identifies a description as part of a wider circle of descriptions that mostly
+	 * occurs in connection with a Conjunction, Disjunction, or SomeProperty.
+	 *
+	 * @since 2.5
+	 *
+	 * @return string
+	 */
+	public function getMembership() {
+		return $this->membership;
+	}
+
+	/**
+	 * @since 2.5
+	 *
+	 * @param string $membership
+	 */
+	public function setMembership( $membership ) {
+		$this->membership = $membership;
+	}
 
 	/**
 	 * Compute the size of the description. Default is 1.

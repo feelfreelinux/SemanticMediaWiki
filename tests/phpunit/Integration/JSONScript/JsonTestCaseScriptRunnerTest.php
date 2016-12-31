@@ -167,6 +167,7 @@ class JsonTestCaseScriptRunnerTest extends JsonTestCaseScriptRunner {
 			'smwgPropertyZeroCountDisplay',
 			'smwgQueryResultCacheType',
 			'smwgLinksInValues',
+			'smwgQFilterDuplicates',
 
 			// MW related
 			'wgLanguageCode',

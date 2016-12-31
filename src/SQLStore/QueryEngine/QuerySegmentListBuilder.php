@@ -6,6 +6,7 @@ use InvalidArgumentException;
 use OutOfBoundsException;
 use SMW\CircularReferenceGuard;
 use SMW\Query\Language\Description;
+use SMW\Query\Language\Conjuncton;
 use SMW\Store;
 
 /**
@@ -27,6 +28,11 @@ class QuerySegmentListBuilder {
 	 * @var DispatchingDescriptionInterpreter
 	 */
 	private $dispatchingDescriptionInterpreter = null;
+
+	/**
+	 * @var boolean
+	 */
+	private $isFilterDuplicates = true;
 
 	/**
 	 * Array of generated QueryContainer query descriptions (index => object).
@@ -67,6 +73,18 @@ class QuerySegmentListBuilder {
 		$this->circularReferenceGuard->setMaxRecursionDepth( 2 );
 
 		QuerySegment::$qnum = 0;
+	}
+
+	/**
+	 * Filter dulicate segments that represent the same query and to be identified
+	 * by the same hash.
+	 *
+	 * @since 2.5
+	 *
+	 * @param boolean $isFilterDuplicates
+	 */
+	public function isFilterDuplicates( $isFilterDuplicates ) {
+		$this->isFilterDuplicates = (bool)$isFilterDuplicates;
 	}
 
 	/**
@@ -187,11 +205,28 @@ class QuerySegmentListBuilder {
 	 */
 	public function getQuerySegmentFrom( Description $description ) {
 
+		$hash = $description->getHash();
+
+		// Get membership of descriptions that are resolved recursively
+		if ( $description->getMembership() !== '' ) {
+			$hash = $hash . $description->getMembership();
+		}
+
+		if ( ( $querySegment = $this->findDuplicate( $hash ) ) ) {
+			return $querySegment;
+		}
+
 		$querySegment = $this->dispatchingDescriptionInterpreter->interpretDescription(
 			$description
 		);
 
-		$this->lastQuerySegmentId = $this->registerQuerySegment( $querySegment );
+		$querySegment->hash = $hash;
+		$querySegment->membership = $description->getMembership();
+		$querySegment->queryString = $description->getQueryString();
+
+		$this->lastQuerySegmentId = $this->registerQuerySegment(
+			$querySegment
+		);
 
 		return $this->lastQuerySegmentId;
 	}
@@ -220,6 +255,21 @@ class QuerySegmentListBuilder {
 		}
 
 		return $query->queryNumber;
+	}
+
+	private function findDuplicate( $hash ) {
+
+		if ( $this->isFilterDuplicates === false ) {
+			return false;
+		}
+
+		foreach ( $this->querySegments as $querySegment ) {
+			if ( $querySegment->hash === $hash ) {
+				return $querySegment->queryNumber;
+			};
+		}
+
+		return false;
 	}
 
 }

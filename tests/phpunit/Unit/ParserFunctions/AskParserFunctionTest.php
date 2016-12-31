@@ -189,6 +189,8 @@ class AskParserFunctionTest extends \PHPUnit_Framework_TestCase {
 
 	public function testQueryIdStabilityForFixedSetOfParameters() {
 
+		$this->testEnvironment->addConfiguration( 'smwgQueryResultCacheType', false );
+
 		$parserData = ApplicationFactory::getInstance()->newParserData(
 			Title::newFromText( __METHOD__ ),
 			new ParserOutput()

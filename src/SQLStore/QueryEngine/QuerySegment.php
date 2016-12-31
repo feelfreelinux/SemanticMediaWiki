@@ -69,6 +69,11 @@ class QuerySegment {
 	/**
 	 * @var string
 	 */
+	public $hash = '';
+
+	/**
+	 * @var string
+	 */
 	public $joinType = '';
 
 	/**

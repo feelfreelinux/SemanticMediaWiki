@@ -250,6 +250,10 @@ class QueryEngine implements QueryEngineInterface {
 			$rootSegment
 		);
 
+		$this->querySegmentListBuilder->isFilterDuplicates(
+			$this->engineOptions->get( 'smwgQFilterDuplicates' )
+		);
+
 		$this->querySegmentListBuilder->setSortKeys(
 			$this->sortKeys
 		);

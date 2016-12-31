@@ -50,10 +50,13 @@ class Conjunction extends Description {
 
 		$hash = array();
 
+		// Filter equal signatures
 		foreach ( $this->descriptions as $description ) {
 			$hash[$description->getHash()] = true;
 		}
 
+		// Sorting to generate a constant hash independent of its
+		// position within a conjunction ( [Foo]][[Bar]], [[Bar]][[Foo]])
 		ksort( $hash );
 
 		return $this->hash = 'C:' . md5( implode( '|', array_keys( $hash ) ) );
@@ -70,16 +73,22 @@ class Conjunction extends Description {
 		if ( ! ( $description instanceof ThingDescription ) ) {
 			if ( $description instanceof Conjunction ) { // absorb sub-conjunctions
 				foreach ( $description->getDescriptions() as $subdesc ) {
-					$this->descriptions[] = $subdesc;
+					$this->descriptions[$subdesc->getHash()] = $subdesc;
 				}
 			} else {
-				$this->descriptions[] = $description;
+				$this->descriptions[$description->getHash()] = $description;
 			}
 
 			// move print descriptions downwards
 			///TODO: This may not be a good solution, since it does modify $description and since it does not react to future changes
 			$this->m_printreqs = array_merge( $this->m_printreqs, $description->getPrintRequests() );
 			$description->setPrintRequests( array() );
+		}
+
+		$hash = $this->getHash();
+
+		foreach ( $this->descriptions as $description ) {
+			$description->setMembership( $hash );
 		}
 	}
 

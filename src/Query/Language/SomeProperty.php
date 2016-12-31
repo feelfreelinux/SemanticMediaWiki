@@ -8,7 +8,7 @@ use SMW\DIProperty;
  * Description of a set of instances that have an attribute with some value
  * that fits another (sub)description.
  *
- * Corresponds to existential quatification ("SomeValuesFrom" restriction) on
+ * Corresponds to existential quantification ("SomeValuesFrom" restriction) on
  * properties in OWL. In conjunctive queries (OWL) and SPARQL (RDF), it is
  * represented by using variables in the object part of such properties.
  *
@@ -29,6 +29,17 @@ class SomeProperty extends Description {
 	 */
 	protected $property;
 
+	/**
+	 * @var string|null
+	 */
+	private $hash = null;
+
+	/**
+	 * @since 1.6
+	 *
+	 * @param DIProperty $property
+	 * @param Description $description
+	 */
 	public function __construct( DIProperty $property, Description $description ) {
 		$this->property = $property;
 		$this->description = $description;
@@ -40,7 +51,26 @@ class SomeProperty extends Description {
 	 * @return string
 	 */
 	public function getHash() {
-		return 'S:' . md5( $this->property->getKey() . '|' . $this->description->getHash() );
+
+		// Avoid a recursive tree
+		if ( $this->hash !== null ) {
+			return $this->hash;
+		}
+
+		$subDescription = $this->description;
+		$property = $this->property->getSerialization();
+
+		// Resolve property.chains and connect its members
+		while ( $subDescription instanceof SomeProperty ) {
+			$subDescription = $subDescription->getDescription();
+			$subDescription->setMembership( $property );
+		}
+
+		// During a recursive chain use the hash from a stored
+		// member to distinguish Foo.Bar.Foobar.Bam from Foo.Bar.Foobar
+		$membership = $this->getMembership() . $subDescription->getMembership();
+
+		return $this->hash = 'S:' . md5( $property . '|' . $membership . '|' . $this->description->getHash() );
 	}
 
 	/**
@@ -51,12 +81,19 @@ class SomeProperty extends Description {
 	}
 
 	/**
+	 * @since 1.6
+	 *
 	 * @return Description
 	 */
 	public function getDescription() {
 		return $this->description;
 	}
 
+	/**
+	 * @since 1.6
+	 *
+	 * @return string
+	 */
 	public function getQueryString( $asValue = false ) {
 		$subDescription = $this->description;
 
@@ -81,22 +118,47 @@ class SomeProperty extends Description {
 		return '[[' . $propertyChainString . '::' . $subDescription->getQueryString( true ) . ']]';
 	}
 
+	/**
+	 * @since 1.6
+	 *
+	 * @return boolean
+	 */
 	public function isSingleton() {
 		return false;
 	}
 
+	/**
+	 * @since 1.6
+	 *
+	 * @return integer
+	 */
 	public function getSize() {
 		return 1 + $this->getDescription()->getSize();
 	}
 
+	/**
+	 * @since 1.6
+	 *
+	 * @return integer
+	 */
 	public function getDepth() {
 		return 1 + $this->getDescription()->getDepth();
 	}
 
+	/**
+	 * @since 1.6
+	 *
+	 * @return integer
+	 */
 	public function getQueryFeatures() {
 		return SMW_PROPERTY_QUERY | $this->description->getQueryFeatures();
 	}
 
+	/**
+	 * @since 1.6
+	 *
+	 * @return SomeProperty
+	 */
 	public function prune( &$maxsize, &$maxdepth, &$log ) {
 
 		if ( ( $maxsize <= 0 ) || ( $maxdepth <= 0 ) ) {
