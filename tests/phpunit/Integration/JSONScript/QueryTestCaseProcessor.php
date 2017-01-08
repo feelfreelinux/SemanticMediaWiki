@@ -5,6 +5,7 @@ namespace SMW\Tests\Integration\JSONScript;
 use SMW\Store;
 use SMWQuery as Query;
 use SMWQueryParser as QueryParser;
+use SMW\Query\QueryComparator;
 use Title;
 
 /**
@@ -120,11 +121,13 @@ class QueryTestCaseProcessor extends \PHPUnit_Framework_TestCase {
 			'Failed asserting query result count on ' . $queryTestCaseInterpreter->isAbout()
 		);
 
-		$this->assertCount(
-			$queryTestCaseInterpreter->getExpectedErrorCount(),
-			$queryResult->getErrors(),
-			'Failed asserting error count ' . $queryTestCaseInterpreter->isAbout()
-		);
+		if ( $queryTestCaseInterpreter->getExpectedErrorCount() > -1 ) {
+			$this->assertNumberWithComparator(
+				count( $queryResult->getErrors() ),
+				$queryTestCaseInterpreter->getExpectedErrorCount(),
+				'Failed asserting error count ' . $queryTestCaseInterpreter->isAbout()
+			);
+		}
 
 		if ( $queryTestCaseInterpreter->getExpectedErrorCount() > 0 ) {
 			return null;
@@ -176,8 +179,7 @@ class QueryTestCaseProcessor extends \PHPUnit_Framework_TestCase {
 
 		$query = new Query(
 			$description,
-			false,
-			true
+			Query::CONCEPT_DESC
 		);
 
 		$query->querymode = $queryTestCaseInterpreter->getQueryMode();
@@ -194,11 +196,13 @@ class QueryTestCaseProcessor extends \PHPUnit_Framework_TestCase {
 			'Failed asserting query result count on ' . $queryTestCaseInterpreter->isAbout()
 		);
 
-		$this->assertCount(
-			$queryTestCaseInterpreter->getExpectedErrorCount(),
-			$queryResult->getErrors(),
-			'Failed asserting error count ' . $queryTestCaseInterpreter->isAbout()
-		);
+		if ( $queryTestCaseInterpreter->getExpectedErrorCount() > -1 ) {
+			$this->assertNumberWithComparator(
+				count( $queryResult->getErrors() ),
+				$queryTestCaseInterpreter->getExpectedErrorCount(),
+				'Failed asserting error count ' . $queryTestCaseInterpreter->isAbout()
+			);
+		}
 
 		foreach ( $queryTestCaseInterpreter->getExpectedConceptCache() as $expectedConceptCache ) {
 
@@ -258,6 +262,24 @@ class QueryTestCaseProcessor extends \PHPUnit_Framework_TestCase {
 		print_r( implode( ',', $queryResult->getQuery()->getErrors() ) );
 		print_r( implode( ',', $queryResult->getErrors() ) );
 		print_r( $queryResult->toArray() );
+	}
+
+	private function assertNumberWithComparator( $actual, $expected, $msg = '' ) {
+
+		$comparator = QueryComparator::getInstance()->extractComparatorFromString( $expected );
+		$expected = (int)$expected;
+
+		if ( $comparator === SMW_CMP_EQ ) {
+			return $this->assertEquals( $actual, $expected, $msg );
+		}
+
+		if ( $comparator === SMW_CMP_GEQ ) {
+			return $this->assertGreaterThanOrEqual( $actual, $expected, $msg );
+		}
+
+		if ( $comparator === SMW_CMP_LEQ ) {
+			return $this->assertLessThanOrEqual( $actual, $expected, $msg );
+		}
 	}
 
 }
