@@ -253,18 +253,13 @@ class SMWFeedResultPrinter extends SMWExportPrinter {
 				// preg_match( '/^([^.!?\s]*[\.!?\s]+){0,30}/', $wikiPage->getText(), $abstract );
 				// $text = $abstract[0] . ' ...';
 			} else {
-				if ( method_exists( $wikiPage, 'getContent' ) ) {
-					$content = $wikiPage->getContent();
+				$content = $wikiPage->getContent();
 
-					if ( $content instanceof TextContent ) {
-						$text = $content->getNativeData();
-					}
-					else {
-						return '';
-					}
+				if ( $content instanceof TextContent ) {
+					$text = $content->getNativeData();
 				}
 				else {
-					$text = $wikiPage->getText();
+					return '';
 				}
 			}
 			return $GLOBALS['wgParser']->parse( $text , $wikiPage->getTitle(), $parserOptions )->getText();
